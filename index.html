@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Music-player</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<style>
+		body {
+  background-color: white;
+  
+  /* Smoothly transition the background color */
+  transition: background-color .5s;
+}
+  
+/* Using flex with the column direction to
+   align items in a vertical direction */
+.player {
+  height: 95vh;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+  
+.details {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 25px;
+}
+  
+.track-art {
+  margin: 25px;
+  height: 250px;
+  width: 250px;
+  background-image: URL(
+     "picture_music.png");
+  background-size: cover;
+  background-position: center;
+  border-radius: 15%;
+}
+  
+.now-playing {
+  font-size: 1rem;
+}
+  
+.track-name {
+  font-size: 3rem;
+   transition:color .5s;
+}
+  
+.track-artist {
+  font-size: 1.5rem;
+}
+  
+.buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+  
+.playpause-track,
+.prev-track,
+.next-track {
+  padding: 25px;
+  opacity: 0.8;
+  
+  /* Smoothly transition the opacity */
+  transition: opacity .2s;
+}
+  
+/* Change the opacity when mouse is hovered */
+.playpause-track:hover,
+.prev-track:hover,
+.next-track:hover {
+  opacity: 1.0;
+}
+  
+/* Define the slider width so that it scales properly */
+.slider_container {
+  width: 75%;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+  
+.seek_slider, .volume_slider {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 5px;
+  background: black;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+  
+.seek_slider::-webkit-slider-thumb,
+.volume_slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: white;
+  cursor: pointer;
+  border-radius: 50%;
+}
+  
+.seek_slider:hover,
+.volume_slider:hover {
+  opacity: 1.0;
+}
+  
+.seek_slider {
+  width: 60%;
+}
+  
+.volume_slider {
+  width: 30%;
+}
+  
+.current-time,
+.total-duration {
+  padding: 10px;
+}
+  
+i.fa-volume-down,
+i.fa-volume-up {
+  padding: 10px;
+}
+  
+i.fa-play-circle,
+i.fa-pause-circle,
+i.fa-step-forward,
+i.fa-step-backward {
+  cursor: pointer;
+}
+	</style>
+</head>
+<body>
+	<div class="player">
+  
+    <div class="details">
+      <div class="now-playing"> x-tadan  y</div>
+      <div class="track-art"></div>
+      <div class="track-name" id="div">Track Name</div>
+      <div class="track-artist">Track Artist</div>
+    </div>
+  
+    <div class="buttons">
+      <div class="prev-track" onclick="prevTrack()">
+        <i class="fa fa-step-backward fa-2x"></i>
+      </div>
+      <div class="playpause-track" onclick="playpauseTrack()">
+        <i class="fa fa-play-circle fa-5x"></i>
+      </div>
+      <div class="next-track" onclick="nextTrack()">
+        <i class="fa fa-step-forward fa-2x"></i>
+      </div>
+    </div>
+  
+    <div class="slider_container">
+      <div class="current-time">00:00</div>
+      <input type="range" min="1" max="100"
+        value="0" class="seek_slider" onchange="seekTo()">
+      <div class="total-duration">00:00</div>
+    </div>
+  
+    <div class="slider_container">
+    	<b class="valtime">100</b>
+      <i class="fa fa-volume-down" onclick="without1()"></i>
+      <input type="range" min="1" max="100"
+        value="99" class="volume_slider" onchange="setVolume()">
+      <i class="fa fa-volume-up"></i>
+    </div>
+       <a href="https://www.instagram.com/jacklondon2007/">Made by Jasur</a>
+  </div>
+  
+ 	<script>
+ 		
+let now_playing = document.querySelector(".now-playing");
+let track_art = document.querySelector(".track-art");
+let track_name = document.querySelector(".track-name");
+let track_artist = document.querySelector(".track-artist");
+  
+let playpause_btn = document.querySelector(".playpause-track");
+let next_btn = document.querySelector(".next-track");
+let prev_btn = document.querySelector(".prev-track");
+  
+let seek_slider = document.querySelector(".seek_slider");
+let volume_slider = document.querySelector(".volume_slider");
+let curr_time = document.querySelector(".current-time");
+let total_duration = document.querySelector(".total-duration");
+  
+let track_index = 0;
+let isPlaying = false;
+let updateTimer;
+  
+let curr_track = document.createElement('audio');
+  
+let track_list = [
+{
+    name: "A_Little_Bit_of_Rhythm",
+    artist: "A_Little_Bit_of_Rhythm",
+    image: "Image URL",
+    path: "A_Little_Bit_of_Rhythm.mp3",
+  },
+  {
+    name: "the_music_box",
+    artist: "the_music_box",
+    image: "Image URL",
+    path: "The_Music_Box.mp3",
+  },
+    {
+    name: "Returning_Home",
+    artist: "Returning_Home",
+    image: "Image URL",
+    path: "Returning_Home.mp3",
+  },
+  {
+    name: "The_Wild_Side",
+    artist: "The_Wild_Side",
+    image: "Image URL",
+    path: "The_Wild_Side.mp3",
+  },
+  {
+    name: "Charms",
+    artist: "Charms",
+    image: "picture_music.png",
+    path: "Charms.mp3",
+  },
+  {
+    name: "Only_the_Braves",
+    artist: "Only_the_Braves",
+    image: "picture_music.png",
+    path: "Only_the_Braves.mp3",
+  },
+    {
+    name: "What_Matters_Most",
+    artist: "What_Matters_Most",
+    image: "Image URL",
+    path: "What_Matters_Most.mp3",
+  },  
+];
+function loadTrack(track_index) {
+  clearInterval(updateTimer);
+  resetValues();
+  
+  curr_track.src = track_list[track_index].path;
+  curr_track.load();
+  
+  track_art.style.backgroundImage = 
+     "url(" + track_list[track_index].image + ")";
+  track_name.textContent = track_list[track_index].name;
+  track_artist.textContent = track_list[track_index].artist;
+  now_playing.textContent = 
+      track_list.length + "-tadan " +(track_index + 1)+"-chisi"  + " o'ynalmoqda "  ;
+  
+  updateTimer = setInterval(seekUpdate, 1000);
+  
+  curr_track.addEventListener("ended", nextTrack);
+  
+
+}
+  
+
+function resetValues() {
+  curr_time.textContent = "00:00";
+  total_duration.textContent = "00:00";
+  seek_slider.value = 0;
+}
+function playpauseTrack() {
+  if (!isPlaying) playTrack();
+  else pauseTrack();
+}
+  
+function playTrack() {
+  curr_track.play();
+  isPlaying = true;
+  
+  playpause_btn.innerHTML = '<i class="fa fa-pause-circle fa-5x"></i>';
+}
+  
+function pauseTrack() {
+  curr_track.pause();
+  isPlaying = false;
+  
+  playpause_btn.innerHTML = '<i class="fa fa-play-circle fa-5x"></i>';
+}
+  
+function nextTrack() {
+  if (track_index < track_list.length - 1)
+    track_index += 1;
+  else track_index = 0;
+  
+  // Load and play the new track
+  loadTrack(track_index);
+  playTrack();
+}
+  
+function prevTrack() {
+  if (track_index > 0)
+    track_index -= 1;
+  else track_index = track_list.length - 1;
+    
+  // Load and play the new track
+  loadTrack(track_index);
+  playTrack();
+}
+   
+function seekTo() {
+  seekto = curr_track.duration * (seek_slider.value / 100);
+  
+  curr_track.currentTime = seekto;
+}
+  
+function setVolume() {
+  document.querySelector(".valtime").innerText = volume_slider.value
+  curr_track.volume = volume_slider.value / 100;
+}
+
+function seekUpdate() {
+  let seekPosition = 0;
+  
+  if (!isNaN(curr_track.duration)) {
+    seekPosition = curr_track.currentTime * (100 / curr_track.duration);
+    seek_slider.value = seekPosition;
+  
+    let currentMinutes = Math.floor(curr_track.currentTime / 60);
+    let currentSeconds = Math.floor(curr_track.currentTime - currentMinutes * 60);
+    let durationMinutes = Math.floor(curr_track.duration / 60);
+    let durationSeconds = Math.floor(curr_track.duration - durationMinutes * 60);
+  
+    if (currentSeconds < 10) { currentSeconds = "0" + currentSeconds; }
+    if (durationSeconds < 10) { durationSeconds = "0" + durationSeconds; }
+    if (currentMinutes < 10) { currentMinutes = "0" + currentMinutes; }
+    if (durationMinutes < 10) { durationMinutes = "0" + durationMinutes; }
+  
+    curr_time.textContent = currentMinutes + ":" + currentSeconds;
+    total_duration.textContent = durationMinutes + ":" + durationSeconds;
+  }
+}
+loadTrack(track_index);
+ 	</script>	
+</body>
+</html>
